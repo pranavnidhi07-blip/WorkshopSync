@@ -1,0 +1,32 @@
+{
+  "name": "workshopsync",
+  "version": "1.0.0",
+  "description": "Reliable Workshop Registration and Notification System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "mock": "node mock-notification/server.js",
+    "db:migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed.js",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "keywords": [
+    "express",
+    "sqlite",
+    "outbox",
+    "reliability"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.1"
+  }
+}

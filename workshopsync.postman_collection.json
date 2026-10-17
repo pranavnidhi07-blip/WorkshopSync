@@ -1,0 +1,251 @@
+{
+  "info": {
+    "name": "WorkshopSync API",
+    "_postman_id": "c1f7b8e0-1234-4567-89ab-cdef01234567",
+    "description": "Postman Collection for WorkshopSync - Reliable Workshop Registration and Notification System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "mockUrl", "value": "http://localhost:4000" },
+    { "key": "organizerToken", "value": "" },
+    { "key": "memberToken", "value": "" },
+    { "key": "workshopId", "value": "" },
+    { "key": "notificationJobId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Health Checks",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        },
+        {
+          "name": "Mock Notification Health",
+          "request": {
+            "method": "GET",
+            "url": "{{mockUrl}}/mock/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Authentication",
+      "item": [
+        {
+          "name": "Login Organizer (Seeded)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"organizer@workshop.local\",\n  \"password\": \"OrganizerPassword123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Member",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"MemberPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Member",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"MemberPass123!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Workshop Management",
+      "item": [
+        {
+          "name": "Create Workshop (Organizer)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/workshops",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Distributed Systems with Node.js\",\n  \"description\": \"Patterns for outbox, idempotency, and background workers\",\n  \"startsAt\": \"2026-11-01T10:00:00.000Z\",\n  \"location\": \"Hall 1\",\n  \"capacity\": 100\n}"
+            }
+          }
+        },
+        {
+          "name": "List Workshops",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/workshops",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Workshop by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update Workshop Details",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"Auditorium A\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancel Workshop (Fan-Out)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}/cancel",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Member Registration",
+      "item": [
+        {
+          "name": "Register for Workshop (Transactional Outbox)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}/registrations",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Duplicate Registration Attempt (Expect 409)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}/registrations",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get My Registrations",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/me/registrations",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{memberToken}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Workshop Registrations (Organizer)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/workshops/{{workshopId}}/registrations",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Notification & Outbox Inspection",
+      "item": [
+        {
+          "name": "Inspect Notification Job",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications/{{notificationJobId}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{organizerToken}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Mock Control",
+      "item": [
+        {
+          "name": "Set Mock to Error Mode (500)",
+          "request": {
+            "method": "POST",
+            "url": "{{mockUrl}}/mock/mode",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"error\",\n  \"statusCode\": 500\n}"
+            }
+          }
+        },
+        {
+          "name": "Set Mock to Timeout Mode (5s delay)",
+          "request": {
+            "method": "POST",
+            "url": "{{mockUrl}}/mock/mode",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"timeout\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Set Mock to Success Mode",
+          "request": {
+            "method": "POST",
+            "url": "{{mockUrl}}/mock/mode",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"success\"\n}"
+            }
+          }
+        },
+        {
+          "name": "View Mock Deliveries",
+          "request": {
+            "method": "GET",
+            "url": "{{mockUrl}}/mock/deliveries"
+          }
+        }
+      ]
+    }
+  ]
+}
